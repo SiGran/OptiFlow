@@ -44,7 +44,7 @@ from utils import processAndExportTakes, takesInDirectory, changeFileExtension
 # ======================================================================================================================
 
 
-def ProcessTake_tocsv(take, output_file, quaternionformat=True):
+def ProcessTake_tocsv(take, output_file, quaternionformat=True, local=True):
 	# Construct an NMotive CSV exporter object with the desired options.
 	exporter = CSVExporter()
 	# -== CSVExporter Class ==-
@@ -60,10 +60,13 @@ def ProcessTake_tocsv(take, output_file, quaternionformat=True):
 		exporter.RotationType = Rotation.XYZ
 
 	exporter.Units = LengthUnits.Units_Millimeters
-	exporter.UseWorldSapceCoordinates = False
-	exporter.WriteUnlabeledMarkers = False
-	#exporter.WriteBoneMarkers = True
-	#exporter.WriteBones = True
+	if local:
+		exporter.UseWorldSapceCoordinates = False
+	else:
+		exporter.UseWorldSapceCoordinates = True
+	# exporter.WriteUnlabeledMarkers = False
+	# exporter.WriteBoneMarkers = True
+	# exporter.WriteBones = True
 	exporter.WriteHeader = True
 	exporter.WriteMarkers = True
 	exporter.WriteQualityStats = False
@@ -125,19 +128,29 @@ def process_tak(folder):
 
 
 def process_taks_for_csv(folder):
-	for take in takesInDirectory(folder):
-		output_file = changeFileExtension(take, '_quat', 'csv')
+	mocap_folder = os.path.join(folder, 'MOCAP_reconstructed')
+	for take in takesInDirectory(mocap_folder):
+		directory, file = os.path.split(take.FileName)
+		filename, extension = os.path.splitext(file)
 		output_folder = os.path.join(folder, 'processed_to_csv')
 		if not os.path.isdir(output_folder):
 			os.mkdir(output_folder)
-		output_path = os.path.join(output_folder, output_file)
-		ProcessTake_tocsv(take, output_path)
-		output_file = changeFileExtension(take, '_XYZ', 'csv')
-		output_path = os.path.join(output_folder, output_file)
-		ProcessTake_tocsv(take, output_path, quaternionformat=False)
+
+		output_file = os.path.join(output_folder, 'loc_quat_' + filename + '.csv')
+		ProcessTake_tocsv(take, output_file)
+
+
+		output_file = os.path.join(output_folder, 'loc_XYZ_' + filename + '.csv')
+		ProcessTake_tocsv(take, output_file, quaternionformat=False)
+
+		output_file = os.path.join(output_folder, 'glob_quat_' + filename + '.csv')
+		ProcessTake_tocsv(take, output_file, local=False)
+
+		output_file = os.path.join(output_folder, 'glob_XYZ_' + filename + '.csv')
+		ProcessTake_tocsv(take, output_file, quaternionformat=False, local=False)
 	return
 
-folder = 'G:/My Drive/R&D Test Data/2019/20190808_S&C_ConorSimon_SquatsRR/MOCAP_reconstructed'
+folder = 'G:/My Drive/R&D Test Data/2019/20190808_S&C_ConorSimon_SquatsRR'
 
 process_taks_for_csv(folder)
 
