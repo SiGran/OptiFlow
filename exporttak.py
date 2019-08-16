@@ -44,7 +44,7 @@ from utils import processAndExportTakes, takesInDirectory, changeFileExtension
 # ======================================================================================================================
 
 
-def ProcessTake_tocsv(take, output_file, quaternionformat=True, local=True):
+def ProcessTake_tocsv(take, output_file, rotation_type, quaternionformat=True, local=True):
 	# Construct an NMotive CSV exporter object with the desired options.
 	exporter = CSVExporter()
 	# -== CSVExporter Class ==-
@@ -54,11 +54,7 @@ def ProcessTake_tocsv(take, output_file, quaternionformat=True, local=True):
 	of elemental rotation is available. More specifically, the XYZ order indicates pitch is degree about the X axis, 
 	yaw is degree about the Y axis, and roll is degree about the Z axis.
 	"""
-	if quaternionformat:
-		exporter.RotationType = Rotation.QuaternionFormat  # QuaternionFormat, XYZ, XZY, YXZ, YZX, ZXY, ZYX
-	else:
-		exporter.RotationType = Rotation.XYZ
-
+	exporter.RotationType = rotation_type
 	exporter.Units = LengthUnits.Units_Millimeters
 	if local:
 		exporter.UseWorldSapceCoordinates = False
@@ -135,19 +131,39 @@ def process_taks_for_csv(folder):
 		output_folder = os.path.join(folder, 'processed_to_csv')
 		if not os.path.isdir(output_folder):
 			os.mkdir(output_folder)
+        for system in ['loc', 'glob']:
+            if system is 'glob':
+                local = False
+            else:
+                local = True
+            for coordinates in ['quat', 'XYZ', 'ZXY', 'ZYX']:
+                quaternionformat = True
+                output_file = os.path.join(output_folder, system + '_' + coordinates + '_' + filename + '.csv')
+                if coordinates is 'quat':
+                    quaternionformat = True
+					rotation_type = Rotation.QuaternionFormat
+                else:
+                    if coordinates is 'XYZ':
+                        rotation_type = Rotation.XYZ
+                    if coordinates is 'ZXY':
+                        rotation_type = Rotation.ZXY
+                    if coordinates is 'ZYX':
+                        rotation_type = Rotation.ZXY
 
-		output_file = os.path.join(output_folder, 'loc_quat_' + filename + '.csv')
-		ProcessTake_tocsv(take, output_file)
+                ProcessTake_tocsv(take, output_file,  rotation_type, quaternionformat, local)
 
-
-		output_file = os.path.join(output_folder, 'loc_XYZ_' + filename + '.csv')
-		ProcessTake_tocsv(take, output_file, quaternionformat=False)
-
-		output_file = os.path.join(output_folder, 'glob_quat_' + filename + '.csv')
-		ProcessTake_tocsv(take, output_file, local=False)
-
-		output_file = os.path.join(output_folder, 'glob_XYZ_' + filename + '.csv')
-		ProcessTake_tocsv(take, output_file, quaternionformat=False, local=False)
+		# output_file = os.path.join(output_folder, 'loc_quat_' + filename + '.csv')
+		# ProcessTake_tocsv(take, output_file)
+        #
+        #
+		# output_file = os.path.join(output_folder, 'loc_XYZ_' + filename + '.csv')
+		# ProcessTake_tocsv(take, output_file, quaternionformat=False)
+        #
+		# output_file = os.path.join(output_folder, 'glob_quat_' + filename + '.csv')
+		# ProcessTake_tocsv(take, output_file, local=False)
+        #
+		# output_file = os.path.join(output_folder, 'glob_XYZ_' + filename + '.csv')
+		# ProcessTake_tocsv(take, output_file, quaternionformat=False, local=False)
 	return
 
 folder = 'G:/My Drive/R&D Test Data/2019/20190808_S&C_ConorSimon_SquatsRR'
