@@ -1,4 +1,6 @@
 """
+
+is python 3
 Does this work?
 does it
 
@@ -12,6 +14,7 @@ import pandas as pd
 import numpy as np
 import logging
 
+
 # Create and configure logger
 logging.basicConfig(filename="c3d_export_log.log",
                     format='%(asctime)s | %(levelname)s:	%(message)s',
@@ -20,13 +23,12 @@ logger = logging.getLogger('C3D exporter')
 
 # Setting the threshold of logger to DEBUG
 logger.setLevel(logging.DEBUG)  # change to info when deployed and switch back when debugging
-folder = 'G:\My Drive\Project OptiFlow\data'
+folder = r'G:\My Drive\R&D Test Data\2019\20190925_S&C_Dylan_Joe&Conor_Jumps'
 
 # TODO: Merge multiple files together (if it contains 'part' and a number)
 if os.path.isdir(folder):
     logger.info('entering the directory: %s', folder)
-    for dirpath, dirname, filenames in os.walk(
-            folder):  # TODO: make it recursive so it can go through folders in folders, etc
+    for dirpath, dirname, filenames in os.walk(folder):  # TODO: make it recursive so it can go through folders in folders, etc
         # Go through filenames in current folder
         for file in filenames:
             # only take the .tak files
@@ -88,8 +90,7 @@ if os.path.isdir(folder):
 
                 mr_labels = data['parameters']['POINT']['LABELS']['value']
                 # For now we've only used 39 markers and the other markers are errors/ only the labels are useful
-                while any("Unlabeled" in marker for marker in
-                          mr_labels):  # while because maybe iterate multiple times if insanely many unlabeled and have numerical overflow
+                while any("Unlabeled" in marker for marker in mr_labels):  # while because maybe iterate multiple times if insanely many unlabeled and have numerical overflow
                     logger.debug("Starting to remove unlabeled markers. Current dimensions of "
                                  "dataframe: %i by %i", len(mr_data_2d), len(mr_data_2d[0]))
                     all_unlabeled = list(filter(lambda marker: 'Unlabeled' in marker, mr_labels))
@@ -111,8 +112,7 @@ if os.path.isdir(folder):
                 mr_df.to_csv(save_mr_path, index=False)
 
                 # Getting the force plate data
-                fp_data = data['data']['analogs'][
-                    0].T  # Somehow it's in 3D with first dimension being one, so that one is redundant and pandas likes it transposed
+                fp_data = data['data']['analogs'][0].T  # Somehow it's in 3D with first dimension being one, so that one is redundant and pandas likes it transposed
                 fp_labels = data['parameters']['ANALOG']['LABELS']['value']
                 fp_df = pd.DataFrame(fp_data, columns=fp_labels)
                 # Adding in the time column at the start
